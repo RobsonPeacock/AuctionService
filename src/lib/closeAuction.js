@@ -21,6 +21,19 @@ export async function closeAuction(auction) {
   const { title, seller, highestBid } = auction;
   const { amount, bidder } = highestBid;
 
+  if (amount === 0) {
+    await sqs.sendMessage({
+      QueueUrl: process.env.MAIL_QUEUE_URL,
+      MessageBody: JSON.stringify({
+        subject: 'Your listing expired',
+        recipient: seller,
+        body: `Your item "${title}" did not recieve any bids`,
+      }),
+    }).promise();
+
+    return;
+  }
+
   const notifySeller = sqs.sendMessage({
     QueueUrl: process.env.MAIL_QUEUE_URL,
     MessageBody: JSON.stringify({
