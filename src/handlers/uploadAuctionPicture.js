@@ -9,6 +9,12 @@ export async function uploadAuctionPicture(event) {
 
     const { id } = event.pathParameters;
     const auction = await getAuctionById(id);
+    const { email } = event.requestContext.authorizer;
+
+    if (auction.seller !== email) {
+        throw new createError.Forbidden('You are not the owner of this auction');
+    }
+
     const base64 = event.body.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64, 'base64');
 
